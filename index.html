@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101816">
+<title>CLOSING TIME — The Application</title>
+<style>
+:root{--bg:#101816;--panel:#19231f;--panel2:#202d27;--line:#34443b;--text:#e9eee8;--muted:#a6b4a8;--accent:#c6d6a1;--accent2:#e4bd83;--danger:#d98d83;--shadow:0 14px 40px #0005}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#26372c 0,transparent 35%),var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.shell{max-width:1100px;margin:auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0 22px;border-bottom:1px solid var(--line)}
+.brand{font-size:13px;letter-spacing:.22em;color:var(--accent);font-weight:800}.subtitle{color:var(--muted);font-size:12px;letter-spacing:.12em}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:9px 13px;font-weight:650}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#172019}.btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.hero{padding:30px 0 20px;display:grid;grid-template-columns:1.3fr .7fr;gap:20px;align-items:end}
+h1{font-family:Georgia,serif;font-weight:500;font-size:clamp(38px,7vw,68px);line-height:1.02;margin:8px 0 14px;letter-spacing:-.04em}
+h2{font:500 29px/1.15 Georgia,serif;margin:0 0 12px}h3{font-size:17px;margin:0 0 8px}
+p{margin:8px 0 14px}.muted{color:var(--muted)}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);font-weight:800}
+.card{background:linear-gradient(145deg,#1d2923,#17211c);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.callout{border-left:3px solid var(--accent2);padding:10px 14px;background:#ffffff08;color:#d8e0d6;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.field{display:flex;flex-direction:column;gap:6px;margin:12px 0}.field label{font-size:13px;color:var(--muted);font-weight:650}
+input,select,textarea{width:100%;background:#101914;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}textarea{min-height:86px;resize:vertical}
+.options{display:grid;gap:8px}.option{display:flex;gap:10px;align-items:flex-start;background:#ffffff06;border:1px solid var(--line);border-radius:10px;padding:11px;cursor:pointer}
+.option:has(input:checked){border-color:var(--accent);background:#c6d6a111}.option input{width:auto;margin-top:4px;accent-color:#c6d6a1}.option strong{display:block;font-size:14px}.option small{display:block;color:var(--muted);font-size:12px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 24px}.step{font-size:11px;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:20px}.step.active{background:var(--accent);color:#172019;border-color:var(--accent);font-weight:800}.step.done{color:var(--accent);border-color:#6f866e}
+.progress{height:5px;background:#ffffff13;border-radius:9px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:22px}.actions .right{display:flex;gap:8px}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:20px;padding:3px 9px;font-size:11px;color:var(--muted);margin:2px}
+.stat{display:flex;justify-content:space-between;border-bottom:1px solid #ffffff12;padding:6px 0;font-size:13px}.stat b{color:var(--accent)}
+.record{white-space:pre-wrap;background:#101914;border:1px solid var(--line);border-radius:10px;padding:14px;font:13px/1.55 ui-monospace,SFMono-Regular,monospace;color:#d9e4d6;overflow:auto}
+.notice{padding:12px;border-radius:10px;background:#c6d6a111;border:1px solid #82956b55;color:#dfe8d2}
+.hidden{display:none!important}.footer{border-top:1px solid var(--line);margin-top:32px;padding-top:14px;color:var(--muted);font-size:12px}
+@media(max-width:720px){.hero,.grid,.grid.three{grid-template-columns:1fr}.shell{padding:14px 12px 40px}.card{padding:16px}.hero{padding-top:20px}.header-actions .btn{font-size:12px;padding:7px 9px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+ <div><div class="brand">CLOSING TIME</div><div class="subtitle">THE BEECHES LEISURE & AQUATIC CENTRE</div></div>
+ <div class="header-actions"><button class="btn" id="saveBtn">Save</button><button class="btn" id="loadBtn">Load</button><button class="btn" id="newBtn">New application</button></div>
+</header>
+<div class="hero">
+ <div><div class="eyebrow">A workplace role-playing game</div><h1>The<br>Application.</h1><p class="muted">A new job. A familiar building. An organisation that seems to know more than it should.</p></div>
+ <div class="card"><div class="eyebrow">Recruitment portal</div><h3>Applications are open</h3><p class="muted">Complete the application and interview to discover what position The Beeches has in mind for you.</p><div class="progress"><span id="progressBar"></span></div><small class="muted" id="progressText">Not started</small></div>
+</div>
+<div class="steps" id="steps"></div>
+<main id="main"></main>
+<div class="footer">FICTIONAL WORKPLACE · BIRMINGHAM, ENGLAND · BUILD 0.1 · Progress is saved in this browser only.</div>
+</div>
+<script>
+const backgrounds=[
+["Military","Discipline, operational awareness and experience following procedures."],
+["Police / Security","Observation, conflict management and investigative experience."],
+["Healthcare / Medical","Patient care, medical knowledge and emergency response."],
+["Engineering / Trades","Practical problem-solving and technical aptitude."],
+["Construction","Site awareness, teamwork and practical experience."],
+["Warehouse / Logistics","Stock control, organisation and working under pressure."],
+["Office / Administration","Records, communication and organisational skills."],
+["Hospitality / Retail","Customer service, sales and handling difficult interactions."],
+["Leisure Industry","Experience of sports, facilities or customer-facing leisure work."],
+["Unemployed","A varied personal history; previous work may be informal or absent."],
+["School Leaver","Limited formal work history, but potential and willingness to learn."],
+["University Graduate","Academic experience and specialist learning."],
+["Professional Athlete / Ex-athlete","High physical capability, discipline and competitive experience."],
+["Failed Musician / Artist / Creative","Creativity, resilience and an unconventional employment history."],
+["Former Scientist / Researcher","Scientific reasoning, observation and research skills."],
+["Self-employed Contractor","Independent work, client management and practical adaptability."],
+["Outdoor Professional / Adventurer","Navigation, endurance and decision-making in unfamiliar environments."],
+["Journalist / Investigator","Research, interviewing and identifying inconsistencies."],
+["Professional Chef","Food safety, time pressure and kitchen operations."],
+["Former Firefighter","Emergency response, teamwork and fire safety."],
+["Archaeologist / Historian","Research, interpretation and attention to physical evidence."],
+["Professional Gambler","Risk assessment, probability and reading people."],
+["Failed Entrepreneur","Initiative, persuasion and experience of setbacks."],
+["Amateur Conspiracy Theorist","Unusual interests, pattern-seeking and strong personal convictions."],
+["Former Prison Officer","Security, boundaries and managing difficult behaviour."],
+["Funeral Director","Professionalism, discretion and supporting people in distress."],
+["Private Investigator","Surveillance, research and evidence gathering."],
+["Zoologist / Marine Biologist","Animal behaviour, biology and environmental knowledge."],
+["IT Technician / Cybersecurity","Systems, troubleshooting and information security."],
+["Unqualified Handyman","Practical confidence, improvisation and variable technical knowledge."],
+["Former Cult Member","A complicated personal history and potentially unusual social insight."],
+["Retired Academic","Deep specialist knowledge and extensive life experience."],
+["Failed Television Personality","Public-facing experience and an unusual employment history."]
+];
+const roles=["Duty Manager","Duty Officer","Lifeguard","Swimming Teacher","Personal Trainer","Receptionist","Maintenance Technician","Cleaner","Fitness Instructor","Café Assistant","Leisure Assistant","Casual / Bank Staff","Aquatics Coordinator","Facilities Manager","Assistant Facilities Technician","Gym Supervisor","Membership Advisor","Health and Safety Officer","Caretaker","Security Officer","Marketing Assistant","Administrator","Operations Coordinator","Special Projects Assistant"];
+const qualifications=["National Pool Lifeguard Qualification (NPLQ)","Swimming teaching qualification","Personal training qualification","Fitness instructor qualification","First Aid at Work","Emergency First Aid at Work","IOSH / NEBOSH","Electrical qualification","Plumbing qualification","Engineering qualification","Food hygiene certificate","Fire safety training","Safeguarding training","Management qualification","IT qualification","Security licence","Full UK driving licence","No formal qualifications relevant to the role"];
+const previousJobs=["Retail Assistant","Customer Service Advisor","Lifeguard","Swimming Teacher","Personal Trainer","Fitness Instructor","Duty Manager","Leisure Assistant","Cleaner","Café Assistant","Warehouse Operative","Delivery Driver","Office Administrator","Healthcare Assistant","Nurse","Police Officer / Staff","Military Service","Electrician","Plumber","Construction Worker","IT Technician","Laboratory Technician","Chef","Security Officer","Teaching Assistant","Student","Self-employed Contractor","Other"];
+const questions=[
+{q:"A customer approaches you angrily because they believe they've been charged incorrectly. What do you do?",a:["Listen and try to understand the problem.","Explain the policy and what can be done.","Find a supervisor to deal with it.","Challenge their behaviour if they're being unreasonable.","Try to resolve it quickly, even if that means bending the rules."]},
+{q:"You notice a colleague struggling with their workload while you're already busy.",a:["Offer assistance.","Finish your own work first.","Tell a supervisor.","Ignore it; everyone has responsibilities.","Take over their work without asking."]},
+{q:"You notice a colleague making a mistake that could affect customer safety. They ask you not to report it.",a:["Report it through the correct procedure.","Speak to them privately first.","Correct the mistake and move on.","Refuse to get involved.","Consider the consequences before deciding."]},
+{q:"An incident occurs while several other tasks need your attention.",a:["Prioritise the immediate risk.","Ask another colleague for assistance.","Try to manage everything yourself.","Wait for a manager's instructions.","Focus on whichever task is easiest to resolve."]},
+{q:"A manager gives you an instruction that you believe is unsafe.",a:["Challenge the instruction and explain why.","Follow it because they're the manager.","Ask for clarification.","Refuse and escalate the matter.","Follow it but document your concerns."]},
+{q:"Why do you want to work at The Beeches?",a:["Career progression.","Stable employment.","Enjoyment of working with people.","Interest in sport and leisure.","Convenience and working hours.","A fresh start.","Something else."]}
+];
+const interview=[
+{q:"Tell me a little about yourself and why you've applied to The Beeches.",opts:["Give a straightforward, honest answer.","Focus on what the centre can offer you.","Emphasise your experience and strengths.","Keep it brief; you'd rather get on with the job."]},
+{q:"This role can involve difficult customers and pressure. How do you respond when someone challenges you?",opts:["Stay calm, listen and establish the facts.","Be firm and make expectations clear.","Ask a colleague or manager for support.","Explain that you don't tolerate disrespect."]},
+{q:"Imagine you discover a staff-only key in a public changing room. What would you do?",opts:["Hand it to a manager and report where it was found.","Try to identify which door it opens.","Ask colleagues whether anyone has lost it.","Keep it safe until you can establish who owns it."]},
+{q:"Is there anything in your previous employment that you would do differently?",opts:["Discuss a genuine mistake and what you learned.","Say you can't think of anything.","Explain a situation where management let you down.","Talk about a difficult colleague."]}
+];
+const npcRoles={"Rachael":"Duty Manager","Alan":"Maintenance Technician","Travis":"Leisure Assistant","Charles":"Facilities Manager","Doreen":"Café Assistant","Zane":"Security Officer","Seb":"Fitness Instructor","Tracey":"Swimming Teacher","Cher":"Membership Advisor","Tina":"Lifeguard","Lynda":"Unknown / unlisted position","Adele":"Gym Supervisor","Alfie":"Casual / Bank Staff","Samantha":"Health and Safety Officer","Jessica":"Receptionist","Henna":"Marketing Assistant","Mark":"Duty Officer","Jack":"Personal Trainer","Vicky":"Aquatics Coordinator","Joel":"Cleaner","Dita":"Assistant Facilities Technician","Liam":"Caretaker","Scott":"Former employee, now customer","Balbinder":"Customer","Paul":"Customer","Janet":"Customer"};
+const npcProfiles={
+"Rachael":"Facility manager and nurse; confident, competent, approachable, fair, kind and professional.",
+"Alan":"Former industrial electrician; reserved, observant, technically gifted and dry-humoured.",
+"Travis":"Former leisure assistant and outdoor instructor; adventurous, competitive and curious.",
+"Charles":"Former local government administrator; formal, organised, controlling and ambitious.",
+"Doreen":"Hospitality and community leisure background; warm, perceptive, sociable and maternal.",
+"Zane":"Warehouse and security background; confident, physically assertive and impulsive.",
+"Seb":"Hospitality and events background; charming, witty, creative and occasionally unreliable.",
+"Tracey":"Swimming teacher and school support background; caring, organised and protective.",
+"Cher":"Retail supervisor; charismatic, ambitious, expressive and competitive.",
+"Tina":"Healthcare assistant; practical, caring, resilient and observant.",
+"Lynda":"Office manager and payroll background; meticulous, cautious and suspicious.",
+"Adele":"Personal trainer and fitness instructor; disciplined, confident and competitive.",
+"Alfie":"School leaver with hospitality experience; enthusiastic, sociable and inexperienced.",
+"Samantha":"Police staff investigator and compliance background; analytical, guarded and principled.",
+"Jessica":"Psychology student and hospitality background; friendly, empathetic and curious.",
+"Henna":"IT support technician; intelligent, introverted, sarcastic and technically gifted.",
+"Mark":"Construction supervisor; confident, practical, humorous and protective.",
+"Jack":"Warehouse operative and amateur footballer; energetic, competitive and impulsive.",
+"Vicky":"School administrator and safeguarding coordinator; organised, assertive and protective.",
+"Joel":"Delivery driver and customer service background; laid-back, charming and private.",
+"Dita":"Laboratory technician; methodical, analytical, reserved and curious.",
+"Liam":"Apprentice electrician; friendly, practical, ambitious and impatient.",
+"Scott":"Former leisure operations employee; now a regular customer.",
+"Balbinder":"Long-standing local customer; observant, polite and quietly humorous.",
+"Paul":"Former tradesman and regular gym customer; blunt, confident and competitive.",
+"Janet":"Retired school administrator and long-standing customer; friendly, inquisitive and sociable."
+};
+const defaultState={step:0,player:{name:"",age:28,pronouns:"",background:"",job1:"",job2:"",qualifications:[],preferredRole:"Leisure Assistant",alternativeRole:"",availability:"Full-time",motivation:"",details:""},answers:{},interviewAnswers:{},interviewFollowups:{},offer:null,history:[],created:false};
+let state=structuredClone(defaultState);
+const stepNames=["Welcome","Personal details","Experience","Qualifications","Position","Questionnaire","Interview","Offer","Personnel record"];
+const main=document.getElementById("main");
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function addHistory(t){state.history.push({date:new Date().toLocaleString(),text:t});}
+function save(silent=false){localStorage.setItem("closingTimeSave",JSON.stringify(state));if(!silent)toast("Progress saved in this browser.");}
+function load(){let d=localStorage.getItem("closingTimeSave");if(!d){toast("No saved application found.");return;}try{state=JSON.parse(d);render();toast("Saved application loaded.");}catch(e){toast("Save file could not be read.");}}
+function toast(t){let el=document.getElementById("toast");if(!el){el=document.createElement("div");el.id="toast";el.style.cssText="position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#dce8c5;color:#172019;padding:10px 16px;border-radius:9px;box-shadow:0 8px 25px #0008;z-index:20;font-weight:700";document.body.appendChild(el);}el.textContent=t;el.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.style.display="none",2200);}
+function selectOptions(arr,val){return arr.map(x=>`<option ${x===val?"selected":""} value="${esc(x)}">${esc(x)}</option>`).join("");}
+function field(label,key,value,placeholder="",type="text"){return `<div class="field"><label>${label}</label><input type="${type}" data-key="${key}" value="${esc(value)}" placeholder="${esc(placeholder)}"></div>`;}
+function bindFields(){document.querySelectorAll("[data-key]").forEach(el=>el.addEventListener("input",()=>{let k=el.dataset.key;if(k.includes(".")){let [a,b]=k.split(".");state.player[a][b]=el.value;}else state.player[k]=el.value;save(true);}));}
+function progress(){document.getElementById("steps").innerHTML=stepNames.map((n,i)=>`<span class="step ${i===state.step?"active":i<state.step?"done":""}">${i+1}. ${n}</span>`).join("");document.getElementById("progressBar").style.width=(state.step/(stepNames.length-1)*100)+"%";document.getElementById("progressText").textContent=state.created?"Application completed":`Stage ${state.step+1} of ${stepNames.length}`;}
+function card(title,body){return `<section class="card"><h2>${title}</h2>${body}</section>`;}
+function nav(back=true,next="Continue"){return `<div class="actions"><button class="btn" id="backBtn" ${back?"":"disabled"}>Back</button><div class="right"><button class="btn primary" id="nextBtn">${next}</button></div></div>`;}
+function bindNav(nextFn,backFn){document.getElementById("nextBtn")?.addEventListener("click",nextFn);document.getElementById("backBtn")?.addEventListener("click",backFn||(()=>{state.step=Math.max(0,state.step-1);render();}));}
+function render(){
+ progress();
+ let p=state.player;
+ if(state.step===0){main.innerHTML=card("Welcome to The Beeches",`<div class="eyebrow">Recruitment portal · Birmingham</div><p>Thank you for your interest in joining The Beeches Leisure & Aquatic Centre.</p><p>We are looking for enthusiastic, reliable individuals to join our team. Previous leisure experience is desirable but not essential. Training may be provided where appropriate.</p><div class="callout">Please complete the application carefully. Your answers will be retained in your personnel record.</div><p class="muted">Some vacancies may not be advertised. All applicants will receive an employment offer, although it may not be for the position originally requested.</p>${nav(false,"Begin application")}`);bindNav(()=>{state.step=1;addHistory("Application started.");render();});return;}
+ if(state.step===1){main.innerHTML=card("Personal details",`<p class="muted">Start with the basics. You can use a fictional name and details.</p><div class="grid">${field("Applicant name","name",p.name,"Your name")}${field("Age (18+)","age",p.age,"Age","number")}</div><div class="grid"><div class="field"><label>Pronouns</label><select data-key="pronouns">${selectOptions(["","He / him","She / her","They / them","Prefer not to say"],p.pronouns)}</select></div><div class="field"><label>Preferred availability</label><select data-key="availability">${selectOptions(["Full-time","Part-time","Evenings","Weekends","Flexible / bank"],p.availability)}</select></div></div><div class="field"><label>Anything about your circumstances you'd like the recruiter to know? (optional)</label><textarea data-key="details" placeholder="For example: caring responsibilities, relocation, career change...">${esc(p.details)}</textarea></div>${nav()}`);bindFields();bindNav(()=>{if(!p.name.trim()||Number(p.age)<18){toast("Please enter a name and an age of at least 18.");return;}state.step=2;addHistory("Personal details submitted.");render();});return;}
+ if(state.step===2){main.innerHTML=card("Previous experience",`<p class="muted">Choose the background that best describes your character. This is separate from previous jobs.</p><div class="field"><label>Background</label><select data-key="background"><option value="">Choose a background</option>${backgrounds.map(([n,d])=>`<option value="${esc(n)}" ${p.background===n?"selected":""}>${esc(n)} — ${esc(d)}</option>`).join("")}</select></div><div class="grid"><div class="field"><label>Previous job 1</label><select data-key="job1"><option value="">Choose a previous job</option>${selectOptions(previousJobs,p.job1)}</select></div><div class="field"><label>Previous job 2 (optional)</label><select data-key="job2"><option value="">No second job</option>${selectOptions(previousJobs,p.job2)}</select></div></div><div class="callout">Your background and previous jobs can unlock knowledge, dialogue, contacts and exclusive events. They do not automatically qualify you for regulated duties.</div>${nav()}`);bindFields();bindNav(()=>{if(!p.background||!p.job1){toast("Please choose a background and at least one previous job.");return;}state.step=3;addHistory("Experience history submitted: "+p.background+"; "+p.job1+(p.job2?", "+p.job2:"")+".");render();});return;}
+ if(state.step===3){main.innerHTML=card("Qualifications and training",`<p class="muted">Select any qualifications your character holds. You can select more than one.</p><div class="options">${qualifications.map(q=>`<label class="option"><input type="checkbox" value="${esc(q)}" ${p.qualifications.includes(q)?"checked":""}><span><strong>${esc(q)}</strong><small>May affect eligibility, starting skills or supervised duties.</small></span></label>`).join("")}</div>${nav()}`);document.querySelectorAll('input[type="checkbox"]').forEach(el=>el.addEventListener("change",()=>{p.qualifications=[...document.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);save(true);}));bindNav(()=>{state.step=4;addHistory("Qualifications declared: "+(p.qualifications.join(", ")||"None")+".");render();});return;}
+ if(state.step===4){main.innerHTML=card("Position preferences",`<p class="muted">Which position are you applying for? The organisation may offer an alternative.</p><div class="field"><label>Preferred position</label><select data-key="preferredRole">${selectOptions(roles,p.preferredRole)}</select></div><div class="field"><label>Alternative interest (optional)</label><select data-key="alternativeRole"><option value="">No preference</option>${selectOptions(roles,p.alternativeRole)}</select></div><div class="callout">Some roles require recognised qualifications. If you lack the required certification, you may be offered a trainee or supervised appointment.</div>${nav()}`);bindFields();bindNav(()=>{state.step=5;addHistory("Preferred position: "+p.preferredRole+".");render();});return;}
+ if(state.step===5){main.innerHTML=card("Application questionnaire",`<p class="muted">Choose the response that best reflects what your character would genuinely do. There are no obvious perfect answers.</p>${questions.map((q,i)=>`<div class="field"><label>${i+1}. ${esc(q.q)}</label><div class="options">${q.a.map((a,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}" ${state.answers[i]===j?"checked":""}><span>${esc(a)}</span></label>`).join("")}</div></div>`).join("")}${nav()}`);document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener("change",()=>{state.answers[el.name.slice(1)]=Number(el.value);save(true);}));bindNav(()=>{if(Object.keys(state.answers).length!==questions.length){toast("Please answer all six questions.");return;}state.step=6;addHistory("Application questionnaire completed.");render();});return;}
+ if(state.step===6){let idx=state.interviewIndex||0;let q=interview[idx];main.innerHTML=card("Interview · Question "+(idx+1)+" of "+interview.length,`<div class="eyebrow">The interview room</div><p>${esc(q.q)}</p><div class="options">${q.opts.map((a,j)=>`<label class="option"><input type="radio" name="interview" value="${j}" ${state.interviewAnswers[idx]===j?"checked":""}><span>${esc(a)}</span></label>`).join("")}</div><div class="field"><label>Would you like to add anything? (optional)</label><textarea id="interviewNote" placeholder="Explain your reasoning in your own words...">${esc(state.interviewNotes?.[idx]||"")}</textarea></div><div class="actions"><button class="btn" id="backBtn">Back</button><div class="right"><button class="btn primary" id="nextBtn">${idx===interview.length-1?"Finish interview":"Next question"}</button></div></div>`);document.querySelectorAll('input[name="interview"]').forEach(el=>el.addEventListener("change",()=>{state.interviewAnswers[idx]=Number(el.value);save(true);}));document.getElementById("interviewNote").addEventListener("input",e=>{state.interviewNotes=state.interviewNotes||{};state.interviewNotes[idx]=e.target.value;save(true);});document.getElementById("backBtn").onclick=()=>{if(idx>0){state.interviewIndex=idx-1;render();}else{state.step=5;render();}};document.getElementById("nextBtn").onclick=()=>{if(state.interviewAnswers[idx]===undefined){toast("Please select a response.");return;}if(idx<interview.length-1){state.interviewIndex=idx+1;render();}else{state.offer=generateOffer();state.step=7;addHistory("Interview completed. Recruitment decision issued.");render();}};return;}
+ if(state.step===7){let o=state.offer;main.innerHTML=card("Recruitment decision",`<div class="eyebrow">Private and confidential</div><h2>${esc(o.title)}</h2><p>${esc(o.message)}</p><div class="notice"><strong>Position offered: ${esc(o.role)}</strong><br>${esc(o.condition)}</div><p class="muted">The offer is now part of your personnel record. You may accept the appointment or request clarification.</p><div class="actions"><button class="btn" id="backBtn">Review interview</button><div class="right"><button class="btn" id="questionBtn">Ask about the offer</button><button class="btn primary" id="acceptBtn">Accept appointment</button></div></div>`);document.getElementById("backBtn").onclick=()=>{state.step=6;state.interviewIndex=interview.length-1;render();};document.getElementById("questionBtn").onclick=()=>{toast(o.hiddenNote);};document.getElementById("acceptBtn").onclick=()=>{state.created=true;state.step=8;addHistory("Employment offer accepted: "+o.role+".");render();};return;}
+ if(state.step===8){let rec=buildRecord();main.innerHTML=card("Personnel record",`<p class="muted">Your recruitment record has been created. This record follows you throughout your employment.</p><div class="record">${esc(rec)}</div><div class="grid"><div class="card"><h3>Next: induction</h3><p class="muted">Meet your colleagues, collect your uniform and learn the building's procedures.</p><button class="btn primary" id="inductionBtn">Begin induction</button></div><div class="card"><h3>World roster</h3><p class="muted">The current generated staff and customer cast.</p><button class="btn" id="rosterBtn">View cast</button></div></div><div class="actions"><button class="btn" id="exportBtn">Export personnel record</button><button class="btn" id="resetBtn">Start a new playthrough</button></div>`);document.getElementById("inductionBtn").onclick=()=>showInduction();document.getElementById("rosterBtn").onclick=()=>showRoster();document.getElementById("exportBtn").onclick=()=>download("closing-time-personnel-record.txt",rec);document.getElementById("resetBtn").onclick=()=>{state=structuredClone(defaultState);localStorage.removeItem("closingTimeSave");render();toast("New application started.");};return;}
+}
+function generateOffer(){
+ let p=state.player, score=0;
+ if(p.qualifications.length)score+=2;
+ if(p.job1)score++;
+ if(p.background==="Unemployed"||p.background==="School Leaver")score-=1;
+ Object.values(state.answers).forEach(v=>{if([0,1,2,3].includes(v))score+=([0,1,2,3,4][v]||0);});
+ Object.values(state.interviewAnswers).forEach(v=>{if([0,1,2].includes(v))score+=2;});
+ let role=p.preferredRole, condition="Standard appointment. Subject to normal induction and probation.";
+ const needs={"Lifeguard":"National Pool Lifeguard Qualification (NPLQ)","Swimming Teacher":"Swimming teaching qualification","Personal Trainer":"Personal training qualification","Fitness Instructor":"Fitness instructor qualification","Security Officer":"Security licence"};
+ let missing=needs[role]&&!p.qualifications.includes(needs[role]);
+ let type="standard";
+ if(missing){type="conditional";condition="Conditional appointment. You must complete the required qualification and work under appropriate supervision until authorised.";}
+ else if(score<7){type="trainee";condition="Trainee appointment. Initial duties will be supervised, with a review after the probationary period.";}
+ if(p.preferredRole==="Duty Manager"&&!p.qualifications.includes("Management qualification")&&!["Office / Administration","Leisure Industry","Military","Police / Security"].includes(p.background)){type="alternative";role=p.alternativeRole||"Duty Officer";condition="The recruitment panel has identified a different vacancy that may better suit your experience. The original application remains on file.";}
+ let unusual=(p.background==="Former Scientist / Researcher"||p.background==="Archaeologist / Historian"||p.background==="Former Cult Member")&&score>=10;
+ if(unusual){type="unusual";role="Special Projects Assistant";condition="This appointment is subject to additional confidentiality requirements. Your reporting line will be confirmed during induction.";}
+ let titles={standard:"Offer of employment",conditional:"Conditional offer of employment",trainee:"Trainee appointment",alternative:"Alternative vacancy offered",unusual:"Additional appointment notice"};
+ let messages={
+ standard:`Dear ${p.name}, following review of your application and interview, we are pleased to offer you employment at The Beeches Leisure & Aquatic Centre.`,
+ conditional:`Dear ${p.name}, we are pleased to offer you a conditional appointment at The Beeches Leisure & Aquatic Centre. Certain duties will remain restricted until the relevant requirements are met.`,
+ trainee:`Dear ${p.name}, we are pleased to offer you a trainee appointment. We believe you have potential to develop within the organisation.`,
+ alternative:`Dear ${p.name}, while we are unable to offer the position originally requested, the recruitment panel would like to offer you an alternative vacancy.`,
+ unusual:`Dear ${p.name}, following an additional review, the organisation has approved an appointment outside the advertised recruitment structure. Further details will be provided in person.`
+ };
+ return {type,title:titles[type],role,message:messages[type],condition,hiddenNote:unusual?"The person who authorised this appointment is not listed on the recruitment panel paperwork.": "The recruitment team can clarify the standard terms of the offer."};
+}
+function buildRecord(){let p=state.player,o=state.offer;return `THE BEECHES LEISURE & AQUATIC CENTRE\nPERSONNEL RECORD — RECRUITMENT\n----------------------------------------\nApplicant: ${p.name}\nAge: ${p.age}\nPronouns: ${p.pronouns||"Not specified"}\nAvailability: ${p.availability}\nBackground: ${p.background}\nPrevious employment: ${[p.job1,p.job2].filter(Boolean).join("; ")}\nQualifications: ${p.qualifications.join("; ")||"None declared"}\nPosition requested: ${p.preferredRole}\nAlternative interest: ${p.alternativeRole||"None"}\nPosition offered: ${o.role}\nAppointment type: ${o.title}\nConditions: ${o.condition}\n----------------------------------------\nAPPLICATION QUESTIONNAIRE\n${questions.map((q,i)=>`${i+1}. ${q.q}\n   ${q.a[state.answers[i]]}`).join("\n")}\n----------------------------------------\nINTERVIEW\n${interview.map((q,i)=>`${i+1}. ${q.q}\n   ${q.opts[state.interviewAnswers[i]]}\n   Additional response: ${state.interviewNotes?.[i]||"None"}`).join("\n")}\n----------------------------------------\nRECRUITMENT HISTORY\n${state.history.map(h=>h.date+" — "+h.text).join("\n")}\n\nRECORD STATUS: EMPLOYMENT OFFER ACCEPTED\nNOTE: This record is retained by the organisation.`;}
+function download(name,text){let a=document.createElement("a"),u=URL.createObjectURL(new Blob([text],{type:"text/plain"}));a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+function showInduction(){main.innerHTML=card("Staff induction",`<div class="eyebrow">New starter · ${esc(state.player.name)}</div><h2>Welcome to The Beeches</h2><p>You've been asked to report to the staff office. A folder, an access card and a folded uniform have been placed on the desk.</p><p>Rachael, the Duty Manager, is reviewing a handover sheet. She looks up briefly.</p><div class="callout">"Morning. You're the new starter, aren't you? We'll get you sorted. There's quite a bit to cover before you go on the floor."</div><p>The induction folder contains fire procedures, safeguarding guidance, COSHH information, emergency arrangements and the staff code of conduct.</p><div class="actions"><button class="btn" id="recordReturn">Personnel record</button><button class="btn primary" id="startShift">Continue to first shift</button></div>`);document.getElementById("recordReturn").onclick=()=>render();document.getElementById("startShift").onclick=()=>{main.innerHTML=card("First shift · 09:42",`<div class="eyebrow">Tuesday · 17 November 2026</div><h2>A normal morning.</h2><p>The reception area smells of chlorine, burnt coffee and something you can't quite identify.</p><p>Jessica is trying to resolve a direct debit complaint. The telephone rings. A radio crackles.</p><div class="callout">"Can somebody check the learner pool, please? We've got a bit of a situation."</div><p>Jessica looks at you, then at the ringing telephone.</p><div class="options"><label class="option"><input type="radio" name="choice" value="radio"><span><strong>Respond to the radio.</strong><small>Find out what's happening at the learner pool.</small></span></label><label class="option"><input type="radio" name="choice" value="customer"><span><strong>Help Jessica with the customer.</strong><small>Learn the reception routine first.</small></span></label><label class="option"><input type="radio" name="choice" value="manager"><span><strong>Find Rachael.</strong><small>Ask the Duty Manager what you should do.</small></span></label><label class="option"><input type="radio" name="choice" value="folder"><span><strong>Check your induction folder.</strong><small>You aren't sure whether you're authorised to respond.</small></span></label></div><button class="btn primary" id="choiceBtn">Make decision</button>`);document.getElementById("choiceBtn").onclick=()=>{let c=document.querySelector('input[name="choice"]:checked');if(!c){toast("Choose an action.");return;}let msgs={radio:"You pick up the radio. A colleague asks you to come to the learner pool. Your first shift has begun.",customer:"You stay at reception and help Jessica. The customer is still unhappy, but you begin to understand the membership system.",manager:"You find Rachael reviewing the morning handover. She gives you a brief instruction and asks you to accompany Mark.",folder:"You check the induction folder. The emergency response section is marked with a handwritten note: 'Ask before entering plant areas.'"};main.innerHTML=card("Your first decision",`<p>${msgs[c.value]}</p><div class="notice">This is the beginning of the live campaign. Your decisions will affect NPC memories, relationships, access and future events.</div><button class="btn primary" id="backRecruit">Return to personnel record</button>`);document.getElementById("backRecruit").onclick=()=>render();};};}
+function showRoster(){let rows=Object.entries(npcRoles).map(([n,r])=>`<div class="stat"><span><b>${esc(n)}</b><br><small class="muted">${esc(npcProfiles[n])}</small></span><span>${esc(r)}</span></div>`).join("");main.innerHTML=card("Playthrough 001 · Cast roster",`<p class="muted">Proposed first-world assignments. These roles can change in a new playthrough.</p>${rows}<button class="btn primary" id="backRecord">Return</button>`);document.getElementById("backRecord").onclick=()=>render();}
+document.getElementById("saveBtn").onclick=()=>save();
+document.getElementById("loadBtn").onclick=load;
+document.getElementById("newBtn").onclick=()=>{state=structuredClone(defaultState);localStorage.removeItem("closingTimeSave");render();toast("New application started.");};
+render();
+</script>
+</body>
+</html>

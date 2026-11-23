@@ -63,7 +63,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}textarea{min-
 </div>
 <div class="steps" id="steps"></div>
 <main id="main"></main>
-<div class="footer">FICTIONAL WORKPLACE · BIRMINGHAM, ENGLAND · BUILD 0.12 · Progress is saved in this browser only.</div>
+<div class="footer">FICTIONAL WORKPLACE · BIRMINGHAM, ENGLAND · BUILD 0.13 · Progress is saved in this browser only.</div>
 </div>
 <script>
 const backgrounds=[
@@ -320,6 +320,30 @@ function generateWorld(st){
 }
 
 const SHIFT_PATTERNS=["06:00–14:00","15:00–22:00","16:00–21:00","07:00–14:30","07:00–14:00"];
+function shiftPatternForNumber(number){
+ const patterns=SHIFT_PATTERNS;
+ return patterns[Math.max(0,(Number(number)||1)-2)%patterns.length];
+}
+function setPlayerShift(c,pattern){
+ const parts=String(pattern).split("–");
+ c.shiftPattern=pattern;c.shiftStart=parts[0];c.shiftEnd=parts[1];
+ c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;c.activeShiftEvent=null;
+ c.rotaHistory=c.rotaHistory||[];
+ c.rotaHistory.push({number:c.shiftNumber,date:c.date,pattern});
+}
+function advanceToNextShift(c,pattern){
+ const parts=pattern.split("–"),target=Number(parts[0].slice(0,2))*60+Number(parts[0].slice(3));
+ const [h,m]=c.time.split(":").map(Number),now=h*60+m;
+ let gap=(target-now+1440)%1440;
+ if(gap<240)gap+=1440;
+ addMinutesToCampaign(gap);
+ c.shiftNumber=(c.shiftNumber||1)+1;
+ setPlayerShift(c,pattern);
+ c.location="Reception";c.stamina=Math.min(100,(c.stamina||0)+20);
+ c.stress=Math.max(0,(c.stress||0)-4);
+ c.journal.push({time:c.time,text:"You clock in for a "+pattern+" shift. The handover notes are waiting."});
+}
+
 function openingHours(date){
  const day=parseStamp(date,"12:00").getDay();
  return day===0||day===6?{open:7*60,close:14*60,label:"07:00–14:00"}:{open:6*60,close:22*60,label:"06:00–22:00"};
@@ -785,7 +809,7 @@ function renderTimeSkipSummary(){
 }
 const defaultState={step:0,player:{name:"",age:28,pronouns:"",background:"",job1:"",job2:"",qualifications:[],preferredRole:"Leisure Assistant",alternativeRole:"",availability:"Full-time",motivation:"",details:""},answers:{},interviewAnswers:{},interviewFollowups:{},interviewNotes:{},generatedInterviewQuestion:null,offer:null,history:[],created:false,induction:{index:0,completed:[],responses:{},knowledge:0},campaign:{started:false,day:1,time:"09:42",location:"Staff Office",health:100,stamina:100,stress:8,sanity:100,skills:{workplace:1,social:1,emergency:0,investigation:0,technical:0,aquatics:0,awareness:0},inventory:["Staff access card","Induction folder","Uniform"],relationships:{},flags:[],journal:[],firstShiftChoice:null}};
 let state=structuredClone(defaultState);
-function migrateCampaign(c){if(!c)return c;c.eventQueue=c.eventQueue||[];c.eventLog=c.eventLog||[];c.calendar=c.calendar||{lastProcessed:(c.date||"2026-11-17")+"T"+(c.time||"09:00"),nextShift:null,daysElapsed:0};c.npcStates=c.npcStates||{};c.completedTasks=c.completedTasks||[];c.incidentRecords=c.incidentRecords||[];c.pendingFollowups=c.pendingFollowups||[];c.resolvedFollowups=c.resolvedFollowups||[];c.personalLives=c.personalLives||{};c.socialEvents=c.socialEvents||[];c.socialInvitations=c.socialInvitations||[];c.worldDevelopments=c.worldDevelopments||[];c.autonomyMinutes=c.autonomyMinutes||0;c.shiftEvents=c.shiftEvents||[];c.shiftCompleted=c.shiftCompleted||[];c.shiftActions=c.shiftActions||0;c.shiftNumber=c.shiftNumber||1;if(c.started&&typeof c.shiftActive!=="boolean"){const hour=Number((c.time||"09:00").split(":")[0]);c.shiftStart=c.time||"09:00";c.shiftEnd=hour<14?"14:00":"22:00";c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;}return c;}
+function migrateCampaign(c){if(!c)return c;c.eventQueue=c.eventQueue||[];c.eventLog=c.eventLog||[];c.calendar=c.calendar||{lastProcessed:(c.date||"2026-11-17")+"T"+(c.time||"09:00"),nextShift:null,daysElapsed:0};c.npcStates=c.npcStates||{};c.completedTasks=c.completedTasks||[];c.incidentRecords=c.incidentRecords||[];c.pendingFollowups=c.pendingFollowups||[];c.resolvedFollowups=c.resolvedFollowups||[];c.personalLives=c.personalLives||{};c.socialEvents=c.socialEvents||[];c.socialInvitations=c.socialInvitations||[];c.worldDevelopments=c.worldDevelopments||[];c.autonomyMinutes=c.autonomyMinutes||0;c.shiftEvents=c.shiftEvents||[];c.shiftCompleted=c.shiftCompleted||[];c.shiftActions=c.shiftActions||0;c.shiftNumber=c.shiftNumber||1;c.conversationHistory=c.conversationHistory||{};c.rotaHistory=c.rotaHistory||[];c.campaignTone=c.campaignTone||"mundane";if(c.started&&typeof c.shiftActive!=="boolean"){const hour=Number((c.time||"09:00").split(":")[0]);c.shiftStart=c.time||"09:00";c.shiftEnd=hour<14?"14:00":"22:00";c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;}return c;}
 const stepNames=["Welcome","Personal details","Experience","Qualifications","Position","Questionnaire","Interview","Offer","Personnel record"];
 const main=document.getElementById("main");
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -861,12 +885,12 @@ function showInduction(){
  document.getElementById("inductionNext").onclick=()=>{const choice=document.querySelector('input[name="inductionChoice"]:checked');if(!choice){toast("Choose a response before continuing.");return;}const selected=m.choices[Number(choice.value)];ind.responses[ind.index]=Number(choice.value);if(!ind.completed.includes(m.title))ind.completed.push(m.title);if(["layout","routes","safeguarding","chemical","alarm","card","assembly"].includes(selected[2]))ind.knowledge++;state.campaign.journal.push({time:state.campaign.time,text:"Induction — "+m.title+": "+selected[0]+". "+selected[1]});addHistory("Induction completed: "+m.title+".");ind.index++;save(true);showInduction();};
 }
 function finishInduction(){
- const c=state.campaign;c.skills.workplace=Math.min(5,1+Math.floor(state.induction.knowledge/2));c.started=true;c.location="Reception";c.time="09:42";
+ const c=state.campaign;c.skills.workplace=Math.min(5,1+Math.floor(state.induction.knowledge/2));c.started=true;c.campaignTone=Math.random()<.22?"unsettling":"mundane";c.location="Reception";c.time="09:42";
  main.innerHTML=card("Induction complete",`<div class="eyebrow">The Beeches · New starter record</div><h2>You're officially on the rota.</h2><p>Rachael collects the induction folder and checks the access card against a list. The card reader gives a short green flash.</p><div class="notice">Induction modules completed: ${state.induction.completed.length}/${inductionModules.length}<br>Workplace knowledge: ${c.skills.workplace}/5<br>Inventory: Staff access card, induction folder, uniform</div><p>As you leave the office, the corridor lights briefly dim. Rachael glances up at the ceiling, waits a moment, then carries on talking as if nothing happened.</p><button class="btn primary" id="startShift">Begin first shift</button>`);
  document.getElementById("startShift").onclick=startFirstShift;save(true);
 }
 function startFirstShift(){
- const c=state.campaign;c.date=c.date||"2026-11-17";c.time="09:42";c.shift="First shift";c.shiftStart="09:42";c.shiftEnd="14:00";c.shiftActive=true;c.shiftNumber=1;c.shiftEvents=[];c.shiftActions=0;c.shiftStartDate=c.date;
+ const c=state.campaign;c.date=c.date||"2026-11-17";c.time="09:42";c.shift="First shift";c.shiftStart="09:42";c.shiftEnd="14:00";c.shiftActive=true;c.shiftNumber=1;c.shiftPattern="Induction / introductory";c.rotaHistory=[{number:1,date:c.date,pattern:"Induction / introductory"}];c.shiftEvents=[];c.shiftActions=0;c.shiftStartDate=c.date;
  main.innerHTML=card("First shift · 09:42",`<div class="eyebrow">Tuesday · 17 November 2026</div><h2>A normal morning.</h2><p>The reception area smells of chlorine, burnt coffee and something you can't quite identify.</p><p>Jessica is trying to resolve a direct debit complaint. The telephone rings. A radio crackles.</p><div class="callout">"Can somebody check the learner pool, please? We've got a bit of a situation."</div><p>Jessica looks at you, then at the ringing telephone.</p><div class="options"><label class="option"><input type="radio" name="choice" value="radio"><span><strong>Respond to the radio.</strong><small>Find out what's happening at the learner pool.</small></span></label><label class="option"><input type="radio" name="choice" value="customer"><span><strong>Help Jessica with the customer.</strong><small>Learn the reception routine first.</small></span></label><label class="option"><input type="radio" name="choice" value="manager"><span><strong>Find Rachael.</strong><small>Ask the Duty Manager what you should do.</small></span></label><label class="option"><input type="radio" name="choice" value="folder"><span><strong>Check your induction folder.</strong><small>You aren't sure whether you're authorised to respond.</small></span></label></div><button class="btn primary" id="choiceBtn">Make decision</button>`);
  document.getElementById("choiceBtn").onclick=()=>{let chosen=document.querySelector('input[name="choice"]:checked');if(!chosen){toast("Choose an action.");return;}c.firstShiftChoice=chosen.value;c.time="09:47";c.journal.push({time:c.time,text:"First shift decision: "+chosen.value});if(chosen.value==="radio"){c.skills.emergency++;c.stress+=5;c.location="Learner Pool";c.flags.push("responded_to_radio");}if(chosen.value==="customer"){c.skills.social++;c.location="Reception";c.flags.push("helped_jessica");}if(chosen.value==="manager"){c.relationships.Rachael=(c.relationships.Rachael||0)+1;c.location="Duty Office";c.flags.push("consulted_rachael");}if(chosen.value==="folder"){c.skills.investigation++;c.stress+=2;c.inventory.push("Handwritten induction note");c.flags.push("noticed_induction_note");}c.stamina=Math.max(0,c.stamina-2);save(true);renderCampaign();};
 }
@@ -894,6 +918,15 @@ function showCheckResult(result,title="Outcome"){
 }
 
 const SHIFT_EVENT_POOL=[
+ {id:"pool_reflection",supernatural:true,title:"Something beneath the water",area:"Main Pool",brief:"As you pass the pool, you catch movement beneath the surface at the far end. There is nobody in that lane. A second glance shows only the pool lights and a slight ripple.",choices:[
+  ["Stop and check the pool properly, following normal safety procedures.","You make a careful check. Nothing is found, but the moment stays with you.",1],
+  ["Ask the lifeguard on duty whether they saw anything.","They haven't. They suggest it was a reflection from the windows.",1],
+  ["Carry on. You have more immediate things to deal with.","The shift continues. Later, you find yourself replaying what you thought you saw.",0]]},
+ {id:"empty_radio",supernatural:true,title:"A voice on the radio",area:"Staff Corridor",brief:"The radio gives a brief burst of static, followed by what sounds like your name. Nobody responds when you answer. The channel is quiet again.",choices:[
+  ["Check with the duty office whether anyone called you.","Nobody did. The radio log shows no outgoing call.",1],
+  ["Ask a nearby colleague if they heard it.","They heard static, but aren't sure about a voice.",1],
+  ["Ignore it and return to your work.","You carry on, although the sound is difficult to place.",0]]},
+
  {id:"radio_pool",title:"A call from poolside",area:"Main Pool",brief:'The radio crackles. "Duty Manager, can you come to poolside, please? We need a decision." A swimming teacher is waiting by the learner pool and looks concerned.',choices:[
   ["Go straight to poolside and establish what has happened.","You arrive promptly and get a clear account before deciding what support is needed.",2],
   ["Ask the caller to explain the immediate risk over the radio.","You establish the urgency first, although the delay is noticed.",1],
@@ -928,8 +961,13 @@ function shiftMinutesRemaining(){const c=state.campaign;return Math.max(0,parseS
 function maybeTriggerShiftEvent(){
  const c=state.campaign;ensureShiftState();if(!c.shiftActive||c.activeShiftEvent)return false;
  const elapsed=(parseStamp(c.date,c.time)-parseStamp(c.date,c.shiftStart))/60000;
- if(elapsed<18||Math.random()>(c.shiftActions<2?.42:.29))return false;
- const used=c.shiftEvents.map(x=>x.id);let pool=SHIFT_EVENT_POOL.filter(x=>!used.includes(x.id));if(!pool.length)pool=SHIFT_EVENT_POOL.slice();
+ if(elapsed<18||Math.random()>(c.shiftActions<2?.30:.20))return false;
+ const used=c.shiftEvents.map(x=>x.id);
+ const supernaturalAllowed=c.campaignTone==="unsettling";
+ const anomalous=supernaturalAllowed&&Math.random()<.055;
+ let pool=SHIFT_EVENT_POOL.filter(x=>!used.includes(x.id)&&!!x.supernatural===anomalous);
+ if(!pool.length)pool=SHIFT_EVENT_POOL.filter(x=>!used.includes(x.id)&&!x.supernatural);
+ if(!pool.length)pool=SHIFT_EVENT_POOL.filter(x=>!x.supernatural);
  const ev=structuredClone(pool[Math.floor(Math.random()*pool.length)]);ev.at=c.time;c.activeShiftEvent=ev;c.shiftEvents.push({id:ev.id,title:ev.title,at:ev.at,status:"unresolved"});return true;
 }
 function shiftAction(kind){
@@ -961,23 +999,25 @@ function resolveShiftEvent(index){
 }
 function finishShift(){
  const c=state.campaign;if(!c.shiftActive)return;c.time=c.shiftEnd;c.shiftActive=false;c.shiftCompleted=c.shiftCompleted||[];
- const summary={date:c.date,start:c.shiftStart,end:c.shiftEnd,number:c.shiftNumber,events:(c.shiftEvents||[]).map(x=>({...x})),journalEntries:(c.journal||[]).filter(x=>x.date===c.date).length};c.shiftCompleted.push(summary);
+ const summary={date:c.date,start:c.shiftStart,end:c.shiftEnd,number:c.shiftNumber,pattern:c.shiftPattern||"Unspecified",events:(c.shiftEvents||[]).map(x=>({...x})),journalEntries:(c.journal||[]).filter(x=>x.date===c.date).length};c.shiftCompleted.push(summary);
  c.journal.push({time:c.time,text:"Shift finished. You hand over outstanding issues and leave the building."});
  save(true);renderShiftEnd();
 }
 function renderShiftEnd(){
  const c=state.campaign,events=(c.shiftEvents||[]);const rows=events.length?events.map(e=>`<div class="stat"><span>${esc(e.title)}<br><small class="muted">${esc(e.at)}</small></span><b>${esc(e.status)}</b></div>`).join(""):'<p class="muted">No notable incidents reached you during this shift.</p>';
- main.innerHTML=card("Shift complete",`<div class="eyebrow">${esc(fmtGameDate(c.date))} · ${esc(c.shiftStart)}–${esc(c.shiftEnd)}</div><h2>That's you finished.</h2><p>You complete the handover, leave any outstanding issues for the next team and clock out. The Beeches carries on without you.</p><h3>What happened</h3>${rows}<div class="notice">Your shift has a definitive end. Events and staff activity will continue between your shifts, but you are no longer on duty.</div><button class="btn primary" id="nextShiftBtn">Start next shift</button><button class="btn" id="journalAfterShift">Review journal</button>`);
+ main.innerHTML=card("Shift complete",`<div class="eyebrow">${esc(fmtGameDate(c.date))} · ${esc(c.shiftPattern||"Introductory shift")} · ${esc(c.shiftStart)}–${esc(c.shiftEnd)}</div><h2>That's you finished.</h2><p>You complete the handover, leave any outstanding issues for the next team and clock out. The Beeches carries on without you.</p><h3>What happened</h3>${rows}<div class="notice">Your shift has a definitive end. Events and staff activity will continue between your shifts, but you are no longer on duty.</div><button class="btn primary" id="nextShiftBtn">Start next shift</button><button class="btn" id="journalAfterShift">Review journal</button>`);
  document.getElementById("nextShiftBtn").onclick=startNextShift;document.getElementById("journalAfterShift").onclick=showJournal;
 }
 function startNextShift(){
- const c=state.campaign;c.time=c.shiftEnd||"14:00";addMinutesToCampaign(17*60);c.time="07:00";c.shiftStart="07:00";c.shiftEnd="14:00";c.shiftNumber=(c.shiftNumber||1)+1;c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;c.activeShiftEvent=null;c.location="Reception";c.stamina=Math.min(100,c.stamina+20);c.stress=Math.max(0,c.stress-4);c.day=(c.day||1)+1;c.journal.push({time:c.time,text:"You arrive for your next shift. The handover notes are waiting."});save(true);renderCampaign();
+ const c=state.campaign,pattern=shiftPatternForNumber((c.shiftNumber||1)+1);
+ advanceToNextShift(c,pattern);
+ c.day=(c.day||1)+1;save(true);renderCampaign();
 }
 function renderCampaign(){
  const c=state.campaign;ensureCalendar();ensureShiftState();if(c.shiftActive&&shiftMinutesRemaining()<=0){finishShift();return;}if(!c.shiftActive){renderShiftEnd();return;}if(c.activeShiftEvent){renderShiftEvent();return;}
  const elapsed=Math.max(0,parseStamp(c.date,c.time)-parseStamp(c.date,c.shiftStart)),total=Math.max(1,parseStamp(c.date,c.shiftEnd)-parseStamp(c.date,c.shiftStart)),progress=Math.min(100,Math.round(elapsed/total*100));
  const phase=progress<25?"Opening stretch":progress<65?"Mid-shift":progress<90?"Closing stretch":"Final handover";
- main.innerHTML=card("On shift · "+esc(c.time),`<div class="eyebrow">${esc(fmtGameDate(c.date))} · Shift ${c.shiftNumber} · ${esc(c.shiftStart)}–${esc(c.shiftEnd)}</div><h2>${esc(phase)}</h2><div class="progress"><span style="width:${progress}%"></span></div><p class="muted">${Math.max(0,Math.round(shiftMinutesRemaining()))} minutes until clocking out · ${esc(c.location)}</p><div class="grid three"><div><small class="muted">Health</small><div class="meter"><span style="width:${c.health}%"></span></div><b>${c.health}/100</b></div><div><small class="muted">Stamina</small><div class="meter"><span style="width:${c.stamina}%"></span></div><b>${c.stamina}/100</b></div><div><small class="muted">Stress</small><div class="meter"><span style="width:${c.stress}%"></span></div><b>${c.stress}/100</b></div></div><div class="callout">The shift moves on whether you get involved or not. Radio calls, customer issues and staff problems may interrupt you.</div><h3>What are you doing?</h3><div class="options"><label class="option"><input type="radio" name="shiftAction" value="floor" checked><span><strong>Walk the floor</strong><small>Check public areas and see what's happening.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="admin"><span><strong>Work through the duty list</strong><small>Records, handovers and outstanding jobs.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="people"><span><strong>Catch up with a colleague</strong><small>A brief conversation during the working day.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="break"><span><strong>Take a break</strong><small>Recover some stamina and reduce stress.</small></span></label></div><div class="actions"><button class="btn" id="shiftJournal">Journal</button><button class="btn" id="shiftPeople">Staff</button><button class="btn primary" id="doShiftAction">Continue shift</button></div>`);
+ main.innerHTML=card("On shift · "+esc(c.time),`<div class="eyebrow">${esc(fmtGameDate(c.date))} · Shift ${c.shiftNumber} · ${esc(c.shiftPattern||"Introductory shift")} · ${esc(c.shiftStart)}–${esc(c.shiftEnd)}</div><h2>${esc(phase)}</h2><div class="progress"><span style="width:${progress}%"></span></div><p class="muted">${Math.max(0,Math.round(shiftMinutesRemaining()))} minutes until clocking out · ${esc(c.location)}</p><div class="grid three"><div><small class="muted">Health</small><div class="meter"><span style="width:${c.health}%"></span></div><b>${c.health}/100</b></div><div><small class="muted">Stamina</small><div class="meter"><span style="width:${c.stamina}%"></span></div><b>${c.stamina}/100</b></div><div><small class="muted">Stress</small><div class="meter"><span style="width:${c.stress}%"></span></div><b>${c.stress}/100</b></div></div><div class="callout">The shift moves on whether you get involved or not. Radio calls, customer issues and staff problems may interrupt you.</div><h3>What are you doing?</h3><div class="options"><label class="option"><input type="radio" name="shiftAction" value="floor" checked><span><strong>Walk the floor</strong><small>Check public areas and see what's happening.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="admin"><span><strong>Work through the duty list</strong><small>Records, handovers and outstanding jobs.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="people"><span><strong>Catch up with a colleague</strong><small>A brief conversation during the working day.</small></span></label><label class="option"><input type="radio" name="shiftAction" value="break"><span><strong>Take a break</strong><small>Recover some stamina and reduce stress.</small></span></label></div><div class="actions"><button class="btn" id="shiftJournal">Journal</button><button class="btn" id="shiftPeople">Staff</button><button class="btn primary" id="doShiftAction">Continue shift</button></div>`);
  document.getElementById("shiftJournal").onclick=showJournal;document.getElementById("shiftPeople").onclick=showPeople;
  document.getElementById("doShiftAction").onclick=()=>{const a=document.querySelector('input[name="shiftAction"]:checked');if(a)shiftAction(a.value);};
 }
@@ -1104,25 +1144,72 @@ function showNpcProfile(name){
  main.innerHTML=card("Personnel · "+esc(name),`<div class="eyebrow">${esc(ns.role)} · ${esc(ns.department)}</div><h2>${esc(name)}</h2><p>${esc(npcProfiles[name])}</p><div class="grid"><div class="notice">Status: ${esc(ns.status)}<br>Shift: ${esc(ns.shift)}<br>Mood: ${esc(ns.mood)}</div><div class="notice">Current goal: ${esc(ns.goal)}<br>Last activity: ${esc(ns.lastAction)}</div></div><h3>Life outside work</h3><div class="notice">Home: ${esc(life.home)}<br>Hobbies: ${life.hobbies.map(esc).join(" · ")}<br>Interests: ${life.interests.map(esc).join(" · ")}<br>${esc(life.socialStyle)}</div><h3>Current priorities</h3><div class="notice">${esc(mind.primaryGoal)}<br><small class="muted">Also: ${esc(mind.secondaryGoal)}</small><br><small class="muted">Progress towards current priority: ${mind.progress}/4</small></div><h3>Recent decisions</h3>${mind.decisions.slice(-3).reverse().map(d=>`<div class="stat"><span>${esc(d.date)} ${esc(d.time)}<br><small>${esc(d.action)}</small></span></div>`).join("")||"<p class=\"muted\">No decisions recorded yet.</p>"}<h3>Known connections</h3>${connections}<h3>Recent recorded memories</h3>${memories}<button class="btn primary" id="profileBack">Back to staff</button>`);
  document.getElementById("profileBack").onclick=showPeople;
 }
-function talkTo(name){
- const c=state.campaign,ns=ensureNpcState(name),val=c.relationships[name]||0;
- const lines={
- Rachael:["Rachael gives you a professional welcome and asks how induction went.","She seems pleased you took the procedures seriously.","A radio call interrupts her, but she makes a note to speak to you later."],
- Jessica:["Jessica explains the membership system and quietly warns you that mornings can be hectic.","She seems relieved that someone has offered to listen.","She glances towards the staff corridor as if she has forgotten what she was saying."],
- Alan:["Alan gives you a practical tip about the building and returns to his task.","He shares a dry observation about the maintenance backlog.","He seems more comfortable discussing equipment than people."],
- Doreen:["Doreen welcomes you and asks whether you've found everything you need.","She tells you who makes the best tea and which cupboard sticks.","She remembers a small detail from your previous conversation."]
+const DIALOGUE_TOPICS={
+ work:[
+  ["The handover has been a bit thin today.","I've had three different people ask me about the same thing. Nobody seems to know who's dealing with it.","There's a job that's been sitting on the list for days. I might chase it again."],
+  ["The rota's been changed twice this week. It's getting difficult to plan anything.","I don't mind being busy. I mind finding out at the last minute.","Someone's swapped a shift and apparently nobody told the people who needed to know."],
+  ["It's been quiet for ten minutes. I'm not convinced it'll stay that way.","The customers have been a bit more demanding lately.","I could do with a shift where the radio doesn't go off every five minutes."]
+ ],
+ personal:[
+  ["I've been trying to make more time for myself outside work.","I had plans at the weekend, but they didn't quite happen.","I've got a few things going on at home. Nothing I particularly want to get into right now."],
+  ["I've been looking at getting away for a few days. Just need to work out when.","I started something new recently. It's nice having something that's got nothing to do with this place.","I keep saying I'll sort my spare room out. Still haven't."],
+  ["Someone I know has been having a difficult time. It's been on my mind.","I've been spending a bit more time with people outside work.","I don't get much time to myself lately, if I'm honest."]
+ ],
+ people:[
+  ["Have you noticed how some people always seem to know what's going on before everyone else?","I get on with most people here, but I wouldn't tell everyone everything.","There's a bit of tension between a couple of people. I'm staying out of it."],
+  ["I heard something about the rota, but I don't know if it's true.","People have been talking about management again.","I think someone here could do with a bit of support, whether they'd admit it or not."],
+  ["It's funny how different people are when the managers aren't around.","I wouldn't repeat this, but something's been bothering me about how that was handled.","I try not to get dragged into gossip. Doesn't always work."]
+ ],
+ unusual:[
+  ["Did you hear that noise earlier? Probably nothing. Still, it was odd.","I had a strange moment in the corridor. Thought I recognised someone who wasn't there.","The clocks in this place never seem to agree. Have you noticed?"],
+  ["I had the weirdest feeling of déjà vu earlier. Anyway, probably just tired.","Someone left a note in a place it couldn't really have got to by accident.","I don't like that bit of the building when it's quiet. Can't explain why."],
+  ["I thought I heard my name over the radio, but nobody was calling me.","There was something odd about the pool earlier. Could've been the reflections.","Maybe it's just a long week, but things have felt slightly off."]
+ ]
+};
+function dialogueLineFor(name,topic){
+ const c=state.campaign,history=c.conversationHistory=c.conversationHistory||{};
+ const seen=history[name]=history[name]||{};
+ const variants=DIALOGUE_TOPICS[topic]||DIALOGUE_TOPICS.work;
+ const topicIndex=Object.keys(DIALOGUE_TOPICS).indexOf(topic);
+ const prior=Number(seen[topic]||0),pick=prior%variants.length;
+ seen[topic]=prior+1;
+ let line=variants[pick][(STAFF_NAMES.indexOf(name)+prior)%3];
+ const quirks={
+  Alan:"Alan gives a small, knowing smile, as though he's already worked out how this will benefit him.",
+  Rachael:"Rachael listens properly, although her attention keeps returning to the demands of the shift.",
+  Charles:"Charles talks quickly, then remembers he hasn't actually asked how you're getting on.",
+  Doreen:"Doreen lowers her voice slightly, then seems to reconsider how much she wants to say.",
+  Seb:"Seb starts confidently, loses his train of thought and ends with an emphatic 'BOMBOCLAT!'",
+  Tracey:"Tracey manages to bring the conversation back to how much better things are at another centre.",
+  Cher:"Cher delivers her opinion as though the matter has already been decided.",
+  Tina:"Tina sounds irritated, though it's not entirely clear whether it's you or the situation.",
+  Lynda:"Lynda's eyes look a little watery. She asks whether you've had anything to eat.",
+  Jessica:"Jessica takes a moment before answering. She seems more comfortable once the conversation gets going.",
+  Henna:"Henna starts to explain, then checks your reaction before continuing.",
+  Alfie:"Alfie folds his arms. He clearly hasn't changed his mind.",
+  Samantha:"Samantha is warm and encouraging, even though she keeps glancing at the time."
  };
- const line=(lines[name]||[`${name} exchanges a few words with you. The conversation is polite, but you haven't got to know one another yet.`,`${name} shares a little about the shift and asks how you're settling in.`,`${name} seems distracted and keeps checking the time.`])[Math.min(2,val)];
- const rel=relationshipRecord("PLAYER",name);
- rel.familiarity=Math.min(5,rel.familiarity+1);
- rel.trust=Math.min(5,rel.trust+(val>0?1:0));
- c.relationships[name]=Math.min(5,val+1);
- ns.mood=ns.mood==="Preoccupied"?"Settled":ns.mood;
- rememberNpc(name,"Spoke with "+state.player.name+": "+line,"player interaction");
- c.stress=Math.max(0,c.stress-1);
- c.journal.push({time:c.time,text:"Spoke with "+name+": "+line});
- save(true);
- main.innerHTML=card("Conversation · "+esc(name),`<p>${esc(line)}</p><div class="notice">Familiarity: ${rel.familiarity}/5 · Trust: ${rel.trust}/5</div><p class="muted">${esc(name)} may remember this conversation and respond differently in future interactions.</p><button class="btn primary" id="peopleBack">Back to staff</button>`);
+ return line+" "+(quirks[name]||name+" considers whether to say more, then leaves the thought hanging.");
+}
+function talkTo(name){
+ const c=state.campaign,ns=ensureNpcState(name),rel=relationshipRecord("PLAYER",name);
+ const recent=(c.conversationHistory||{})[name]||{};
+ const topics=Object.keys(DIALOGUE_TOPICS);
+ const options=topics.map(t=>({id:t,label:({work:"Talk about work",personal:"Ask about life outside work",people:"Talk about other staff",unusual:"Mention something odd"})[t],disabled:false}));
+ main.innerHTML=card("Speak with "+esc(name),`<p>${esc(name)} is ${esc(ns.mood||"settled").toLowerCase()} and seems ${esc(ns.lastAction||"occupied")}. Choose what to talk about.</p><div class="options">${options.map(o=>`<label class="option"><input type="radio" name="dialogueTopic" value="${o.id}" ${o.disabled?"disabled":""}><span><strong>${o.label}</strong><small>${o.disabled?"You've covered this ground several times recently.":"See where the conversation goes."}</small></span></label>`).join("")}</div><button class="btn primary" id="beginConversation">Start conversation</button><button class="btn" id="peopleBack">Leave them to it</button>`);
+ document.getElementById("beginConversation").onclick=()=>{
+  const choice=document.querySelector('input[name="dialogueTopic"]:checked');if(!choice){toast("Choose a topic.");return;}
+  const topic=choice.value,line=dialogueLineFor(name,topic);
+  rel.familiarity=Math.min(5,(rel.familiarity||0)+1);
+  if(topic==="personal"||topic==="people")rel.trust=Math.min(5,(rel.trust||0)+((c.relationships[name]||0)>1?1:0));
+  c.relationships[name]=Math.min(5,(c.relationships[name]||0)+1);
+  rememberNpc(name,"Spoke with "+state.player.name+" about "+topic+": "+line,"player interaction");
+  c.stress=Math.max(0,c.stress-1);
+  c.journal.push({time:c.time,text:"Spoke with "+name+" about "+topic+": "+line});
+  save(true);
+  main.innerHTML=card("Conversation · "+esc(name),`<div class="eyebrow">${esc(c.time)} · ${esc(topic)}</div><p>${esc(name)}: "${esc(line)}"</p><div class="notice">Familiarity: ${rel.familiarity}/5 · Trust: ${rel.trust}/5</div><p class="muted">They may remember what you discussed. Repeating the same topic too often becomes less productive.</p><button class="btn primary" id="peopleBack">Back to staff</button>`);
+  document.getElementById("peopleBack").onclick=showPeople;
+ };
  document.getElementById("peopleBack").onclick=showPeople;
 }
 function showPlaces(){const places=["Reception","Main Pool","Learner Pool","Gym","Changing Rooms","Staff Office","Duty Office","Café","Plant Room Corridor"];main.innerHTML=card("Explore the building",`<p class="muted">Public areas are accessible. Restricted spaces may require permission or a specific role.</p><div class="options">${places.map(x=>`<label class="option"><input type="radio" name="place" value="${x}" ${state.campaign.location===x?"checked":""}><span><strong>${x}</strong><small>${x==="Plant Room Corridor"?"Restricted access. Do not enter without authorisation.":x==="Staff Office"||x==="Duty Office"?"Staff area.":"Public or operational area."}</small></span></label>`).join("")}</div><button class="btn primary" id="goPlace">Go to location</button><button class="btn" id="campaignBack">Return to shift</button>`);document.getElementById("goPlace").onclick=()=>{const v=document.querySelector('input[name="place"]:checked')?.value;if(!v){toast("Choose a location.");return;}if(v==="Plant Room Corridor"&&!state.campaign.flags.includes("plant_warning")){state.campaign.stress+=5;state.campaign.journal.push({time:state.campaign.time,text:"You approach the plant room corridor. A STAFF AUTHORISED ONLY sign prevents entry."});state.campaign.flags.push("plant_warning");toast("Access restricted. You remain outside.");}else{state.campaign.location=v;state.campaign.time="10:20";state.campaign.journal.push({time:state.campaign.time,text:"You move to "+v+"."});}save(true);renderCampaign();};document.getElementById("campaignBack").onclick=renderCampaign;}

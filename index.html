@@ -63,7 +63,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}textarea{min-
 </div>
 <div class="steps" id="steps"></div>
 <main id="main"></main>
-<div class="footer">FICTIONAL WORKPLACE · BIRMINGHAM, ENGLAND · BUILD 0.13 · Progress is saved in this browser only.</div>
+<div class="footer">FICTIONAL WORKPLACE · BIRMINGHAM, ENGLAND · BUILD 0.14 · Progress is saved in this browser only.</div>
 </div>
 <script>
 const backgrounds=[
@@ -789,9 +789,25 @@ function respondSocialInvite(id,accept){
 
 function npcSummary(name){const n=ensureNpcState(name),a=state.world?.staff?.[name]||{};return {role:a.role||"Employee",department:a.department||"Unassigned",shift:a.shift||"Unassigned",status:n.status||"unknown",mood:n.mood||"unknown",goal:n.currentGoal||"Unknown",lastAction:n.lastAction||"No recorded activity",memory:n.memory||[]};}
 function fmtGameDate(iso){const d=new Date(iso+"T12:00:00");return d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+function processStaffRumours(updates){
+ const c=state.campaign;c.staffRumours=c.staffRumours||[];
+ const active=(c.storylines||[]).filter(a=>a.status==="active");
+ if(!active.length||Math.random()>.28)return;
+ const arc=active[Math.floor(Math.random()*active.length)],def=STORYLINE_LIBRARY.find(x=>x.id===arc.id);
+ if(!def)return;
+ const pair=def.cast.slice(0,2);
+ const rumours=[
+  pair[0]+" has been talking to "+pair[1]+" about what's been happening.",
+  "Someone overheard a conversation involving "+pair.join(" and ")+".",
+  "Staff have started comparing notes about "+def.title.toLowerCase()+"."
+ ];
+ const note={date:c.date,time:c.time,text:rumours[Math.floor(Math.random()*rumours.length)],storyId:arc.id};
+ c.staffRumours.push(note);c.staffRumours=c.staffRumours.slice(-30);
+ if(updates&&Math.random()<.45)updates.push(note.text);
+}
 function addMinutesToCampaign(mins){
  const c=state.campaign;ensureCalendar();ensurePersonalLifeStore();const before=c.date+"T"+c.time,updates=[];
- const oldDate=c.date;processNpcAutonomy(mins,updates);processPersonalSocialEvents(before,c.date+"T"+c.time,updates);
+ const oldDate=c.date;processNpcAutonomy(mins,updates);processPersonalSocialEvents(before,c.date+"T"+c.time,updates);if(mins>=60)processStaffRumours(updates);
  c.day=Math.floor((parseStamp(c.date,"12:00")-parseStamp("2026-11-17","12:00"))/86400000)+1;
  const hours=mins/60;
  // Missed appointments remain visible in the event log rather than being silently discarded.
@@ -809,7 +825,7 @@ function renderTimeSkipSummary(){
 }
 const defaultState={step:0,player:{name:"",age:28,pronouns:"",background:"",job1:"",job2:"",qualifications:[],preferredRole:"Leisure Assistant",alternativeRole:"",availability:"Full-time",motivation:"",details:""},answers:{},interviewAnswers:{},interviewFollowups:{},interviewNotes:{},generatedInterviewQuestion:null,offer:null,history:[],created:false,induction:{index:0,completed:[],responses:{},knowledge:0},campaign:{started:false,day:1,time:"09:42",location:"Staff Office",health:100,stamina:100,stress:8,sanity:100,skills:{workplace:1,social:1,emergency:0,investigation:0,technical:0,aquatics:0,awareness:0},inventory:["Staff access card","Induction folder","Uniform"],relationships:{},flags:[],journal:[],firstShiftChoice:null}};
 let state=structuredClone(defaultState);
-function migrateCampaign(c){if(!c)return c;c.eventQueue=c.eventQueue||[];c.eventLog=c.eventLog||[];c.calendar=c.calendar||{lastProcessed:(c.date||"2026-11-17")+"T"+(c.time||"09:00"),nextShift:null,daysElapsed:0};c.npcStates=c.npcStates||{};c.completedTasks=c.completedTasks||[];c.incidentRecords=c.incidentRecords||[];c.pendingFollowups=c.pendingFollowups||[];c.resolvedFollowups=c.resolvedFollowups||[];c.personalLives=c.personalLives||{};c.socialEvents=c.socialEvents||[];c.socialInvitations=c.socialInvitations||[];c.worldDevelopments=c.worldDevelopments||[];c.autonomyMinutes=c.autonomyMinutes||0;c.shiftEvents=c.shiftEvents||[];c.shiftCompleted=c.shiftCompleted||[];c.shiftActions=c.shiftActions||0;c.shiftNumber=c.shiftNumber||1;c.conversationHistory=c.conversationHistory||{};c.rotaHistory=c.rotaHistory||[];c.campaignTone=c.campaignTone||"mundane";if(c.started&&typeof c.shiftActive!=="boolean"){const hour=Number((c.time||"09:00").split(":")[0]);c.shiftStart=c.time||"09:00";c.shiftEnd=hour<14?"14:00":"22:00";c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;}return c;}
+function migrateCampaign(c){if(!c)return c;c.eventQueue=c.eventQueue||[];c.eventLog=c.eventLog||[];c.calendar=c.calendar||{lastProcessed:(c.date||"2026-11-17")+"T"+(c.time||"09:00"),nextShift:null,daysElapsed:0};c.npcStates=c.npcStates||{};c.completedTasks=c.completedTasks||[];c.incidentRecords=c.incidentRecords||[];c.pendingFollowups=c.pendingFollowups||[];c.resolvedFollowups=c.resolvedFollowups||[];c.personalLives=c.personalLives||{};c.socialEvents=c.socialEvents||[];c.socialInvitations=c.socialInvitations||[];c.worldDevelopments=c.worldDevelopments||[];c.autonomyMinutes=c.autonomyMinutes||0;c.shiftEvents=c.shiftEvents||[];c.shiftCompleted=c.shiftCompleted||[];c.shiftActions=c.shiftActions||0;c.shiftNumber=c.shiftNumber||1;c.conversationHistory=c.conversationHistory||{};c.rotaHistory=c.rotaHistory||[];c.storylines=c.storylines||[];c.campaignTone=c.campaignTone||"mundane";if(c.started&&typeof c.shiftActive!=="boolean"){const hour=Number((c.time||"09:00").split(":")[0]);c.shiftStart=c.time||"09:00";c.shiftEnd=hour<14?"14:00":"22:00";c.shiftActive=true;c.shiftEvents=[];c.shiftActions=0;}return c;}
 const stepNames=["Welcome","Personal details","Experience","Qualifications","Position","Questionnaire","Interview","Offer","Personnel record"];
 const main=document.getElementById("main");
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -956,12 +972,72 @@ const SHIFT_EVENT_POOL=[
   ["Call the duty office to confirm who authorised the visit.","The contractor waits while the details are checked.",2],
   ["Let them through because they appear to know where they're going.","You have allowed access without verifying authorisation.",-3]]}
 ];
+const STORYLINE_LIBRARY=[
+ {id:"covering",title:"Covering for someone",cast:["Mark","Doreen","Alan"],stages:[
+  {title:"A favour on the rota",area:"Staff Office",brief:"You notice a handwritten alteration on the rota. Mark's name has been crossed out and replaced, but the change has not been initialled. Doreen quickly says she knows nothing about it.",choices:[["Ask Doreen privately what happened.","Doreen says Mark asked her to swap. She looks uncomfortable.",1],["Check the authorised rota with the office.","The official rota does not show the change. Someone has bypassed the normal process.",2],["Leave it for the next handover.","The discrepancy remains. Other staff may rely on the wrong information.",0]]},
+  {title:"The story changes",area:"Staff Corridor",brief:"A few shifts later, two versions of the rota are circulating. Mark says he was told not to come in. Doreen insists she was only trying to help. Alan has apparently been asking who approved it.",choices:[["Speak to each person separately.","The accounts do not quite match, but you establish who knew what.",2],["Bring the issue to the Facility Manager.","The matter is formally checked. Nobody is pleased, but the facts are clearer.",2],["Tell them to sort it out between themselves.","The disagreement becomes more personal and the rota remains unreliable.",-1]]},
+  {title:"Someone takes the blame",area:"Duty Office",brief:"The rota issue has reached management. Doreen says she made the alteration to protect Mark, while Mark says he never asked her to. Alan seems unusually keen to provide his version.",choices:[["Record the facts and let the formal process run.","The decision is based on the records rather than the loudest account.",2],["Give Doreen a chance to explain without interruption.","She admits she acted without authorisation, but says she was trying to help.",1],["Back Mark without checking the evidence.","The immediate argument stops, but the underlying facts remain unresolved.",-1]]}
+ ]},
+ {id:"complaint",title:"A complaint that won't go away",cast:["Rachael","Cher","Jessica"],stages:[
+  {title:"A customer wants to be heard",area:"Reception",brief:"A regular customer asks to speak to the Duty Manager. They say Cher dismissed a concern about the changing rooms yesterday. Jessica was nearby but has not volunteered anything.",choices:[["Listen to the customer and establish the details.","You get a clearer account and agree what needs checking.",2],["Ask Cher for her account first.","Cher is defensive, but gives you her version.",1],["Suggest they put it in writing and move on.","The customer leaves dissatisfied and says they will complain formally.",-1]]},
+  {title:"A witness hesitates",area:"Staff Room",brief:"Jessica approaches you during a quieter moment. She says she heard more of the exchange than she first admitted, but she is worried about being dragged into an argument.",choices:[["Give Jessica space to explain in her own words.","She describes the exchange, including details that complicate both accounts.",2],["Tell her she must make a formal statement.","She agrees reluctantly and becomes less comfortable around you.",0],["Say you don't want to involve her.","She withdraws. The complaint proceeds with an incomplete account.",-1]]},
+  {title:"The response",area:"Duty Office",brief:"The customer has followed up. Rachael wants the matter handled consistently, while Cher feels she is being singled out. Jessica is waiting to hear whether anything will change.",choices:[["Agree a proportionate response and follow-up.","The customer receives an answer and staff understand what is expected.",2],["Focus only on the customer outcome.","The immediate complaint is resolved, but the staff issue is left unsettled.",1],["Close the matter without further action.","The complaint quietens down, but trust is damaged.",-1]]}
+ ]},
+ {id:"missing_keys",title:"The missing keys",cast:["Zane","Alan","Tina"],stages:[
+  {title:"The key cabinet",area:"Duty Office",brief:"A set of restricted-area keys is not where the sign-out sheet says it should be. Zane says he returned them. Tina remembers seeing someone near the cabinet, but isn't sure who.",choices:[["Secure the cabinet and check the sign-out record.","You establish the last recorded handover and restrict access until it is resolved.",2],["Ask Zane to retrace his steps.","He becomes irritated but agrees to help.",1],["Assume someone has put them back incorrectly.","The keys remain unaccounted for and access control is uncertain.",-2]]},
+  {title:"Conflicting recollections",area:"Maintenance Corridor",brief:"The keys have still not appeared. Alan says he saw someone carrying a similar ring, while Tina now thinks she heard the cabinet being opened after her break.",choices:[["Check access and speak to staff individually.","The timeline narrows, although nobody has a complete account.",2],["Ask the whole team in the staff room.","People become defensive and the conversation turns into blame.",0],["Wait until the keys turn up.","The issue remains open and the next shift inherits it.",-1]]},
+  {title:"Where they were",area:"Stores",brief:"The key ring is found in an equipment cupboard. It is unclear whether it was misplaced during a legitimate task or deliberately moved. The sign-out record has a gap.",choices:[["Document the recovery and review the process.","The keys are secured and the procedural weakness is addressed.",2],["Confront the person you suspect.","You get a reaction, but no reliable evidence.",-1],["Put them back and say nothing.","Operations resume, but the record remains incomplete.",-2]]}
+ ]},
+ {id:"quiet_exit",title:"Thinking of leaving",cast:["Henna","Doreen","Rachael"],stages:[
+  {title:"A job advert",area:"Reception",brief:"You notice Henna looking at a job advert on her phone. When she sees you, she closes it and asks whether the next rota has been published.",choices:[["Ask how she's getting on, without pressuring her.","Henna admits she has been considering other work, but hasn't decided.",1],["Ask directly whether she's resigning.","She says no, but seems uncomfortable that you've noticed.",0],["Say nothing and respect her privacy.","She changes the subject. You learn nothing more for now.",0]]},
+  {title:"A difficult week",area:"Staff Room",brief:"Henna has been quieter than usual. Doreen says she recognises the signs of someone who has had enough. Rachael asks whether anything is affecting the team's morale.",choices:[["Check in with Henna privately.","She explains some of the pressures without making a decision about leaving.",2],["Ask Rachael to review the working arrangements.","Rachael agrees to look at what can realistically be changed.",1],["Treat it as a personal matter and leave it alone.","Henna keeps her concerns to herself.",0]]},
+  {title:"A decision",area:"Staff Office",brief:"Henna tells you she has an interview elsewhere. She has not handed in her notice, but wants to know whether anything at Beeches might change.",choices:[["Have an honest conversation about her options.","Henna appreciates the honesty. Her decision remains hers.",2],["Promise changes you cannot guarantee.","She is briefly reassured, but the promise may come back to you.",-1],["Wish her luck and avoid making promises.","The conversation is respectful, even if she decides to leave.",1]]}
+ ]}
+];
+function ensureStorylines(){
+ const c=state.campaign;c.storylines=c.storylines||[];
+ if(!c.storylinesInitialised){
+  c.storylinesInitialised=true;
+  const chosen=STORYLINE_LIBRARY.slice().sort(()=>Math.random()-.5).slice(0,2);
+  c.storylines=chosen.map(a=>({id:a.id,stage:0,status:"active",startedAt:null,history:[],pressure:0}));
+ }
+}
+function currentStoryEvent(){
+ const c=state.campaign;ensureStorylines();
+ const active=c.storylines.filter(x=>x.status==="active");
+ if(!active.length)return null;
+ const arc=active[Math.floor(Math.random()*active.length)],def=STORYLINE_LIBRARY.find(x=>x.id===arc.id);
+ if(!def||!def.stages[arc.stage])return null;
+ const stage=def.stages[arc.stage];
+ return {id:"story_"+arc.id+"_"+arc.stage,storyId:arc.id,storyStage:arc.stage,title:stage.title,area:stage.area,brief:stage.brief,choices:stage.choices.map(x=>x.slice()),supernatural:false};
+}
+function advanceStoryline(ev,outcome,choiceText){
+ if(!ev.storyId)return;
+ const c=state.campaign,arc=(c.storylines||[]).find(x=>x.id===ev.storyId);if(!arc||arc.status!=="active")return;
+ arc.history.push({date:c.date,time:c.time,stage:ev.storyStage,title:ev.title,outcome,choice:choiceText});
+ arc.pressure=Math.max(0,(arc.pressure||0)+(outcome==="failure"?2:outcome==="success"?-1:0));
+ arc.stage++;
+ const def=STORYLINE_LIBRARY.find(x=>x.id===arc.id);
+ if(arc.stage>=def.stages.length){arc.status="concluded";addWorldDevelopment(def.title,"This situation has reached a conclusion. The outcome will remain part of staff memories.",def.cast,"story",true);}
+ else addWorldDevelopment(def.title+" develops","The situation has moved on. People involved may remember how it was handled.",def.cast,"story",true);
+}
+function maybeSurfaceStoryline(){
+ const c=state.campaign;ensureStorylines();
+ if(!c.shiftActive||c.activeShiftEvent)return false;
+ const active=c.storylines.filter(x=>x.status==="active"&&x.stage<3);
+ if(!active.length)return false;
+ if(Math.random()>.19)return false;
+ const ev=currentStoryEvent();if(!ev)return false;
+ ev.at=c.time;c.activeShiftEvent=ev;c.shiftEvents.push({id:ev.id,title:ev.title,at:ev.at,status:"unresolved",storyId:ev.storyId});
+ return true;
+}
 function ensureShiftState(){const c=state.campaign;c.shiftActive=!!c.shiftActive;c.shiftEvents=c.shiftEvents||[];c.shiftActions=Number(c.shiftActions)||0;c.shiftNumber=Number(c.shiftNumber)||1;}
 function shiftMinutesRemaining(){const c=state.campaign;return Math.max(0,parseStamp(c.date,c.shiftEnd)-parseStamp(c.date,c.time))/60000;}
 function maybeTriggerShiftEvent(){
  const c=state.campaign;ensureShiftState();if(!c.shiftActive||c.activeShiftEvent)return false;
  const elapsed=(parseStamp(c.date,c.time)-parseStamp(c.date,c.shiftStart))/60000;
  if(elapsed<18||Math.random()>(c.shiftActions<2?.30:.20))return false;
+ if(maybeSurfaceStoryline())return true;
  const used=c.shiftEvents.map(x=>x.id);
  const supernaturalAllowed=c.campaignTone==="unsettling";
  const anomalous=supernaturalAllowed&&Math.random()<.055;
@@ -987,12 +1063,12 @@ function renderShiftEvent(){
  const c=state.campaign,ev=c.activeShiftEvent;if(!ev){renderCampaign();return;}
  main.innerHTML=card(ev.title,`<div class="eyebrow">${esc(ev.area)} · ${esc(c.time)} · Interrupting your shift</div><p>${esc(ev.brief)}</p><h3>What do you do?</h3><div class="options">${ev.choices.map((x,i)=>`<label class="option"><input type="radio" name="shiftEventChoice" value="${i}"><span><strong>${esc(x[0])}</strong></span></label>`).join("")}</div><button class="btn primary" id="resolveShiftEvent">Respond</button><button class="btn" id="leaveShiftEvent">Don't get involved</button>`);
  document.getElementById("resolveShiftEvent").onclick=()=>{const v=document.querySelector('input[name="shiftEventChoice"]:checked');if(!v){toast("Choose a response.");return;}resolveShiftEvent(Number(v.value));};
- document.getElementById("leaveShiftEvent").onclick=()=>{const spent=Math.min(8,shiftMinutesRemaining());if(spent>0)addMinutesToCampaign(spent);ev.ignored=true;const row=c.shiftEvents.find(x=>x.id===ev.id);if(row)row.status="left unattended";c.journal.push({time:c.time,text:"You did not intervene when: "+ev.title+"."});c.activeShiftEvent=null;save(true);renderCampaign();};
+ document.getElementById("leaveShiftEvent").onclick=()=>{const spent=Math.min(8,shiftMinutesRemaining());if(spent>0)addMinutesToCampaign(spent);ev.ignored=true;if(ev.storyId)advanceStoryline(ev,"ignored","Did not intervene");const row=c.shiftEvents.find(x=>x.id===ev.id);if(row)row.status="left unattended";c.journal.push({time:c.time,text:"You did not intervene when: "+ev.title+"."});c.activeShiftEvent=null;save(true);renderCampaign();};
 }
 function resolveShiftEvent(index){
  const c=state.campaign,ev=c.activeShiftEvent;if(!ev)return;const spent=Math.min(10,shiftMinutesRemaining());if(spent>0)addMinutesToCampaign(spent);const choice=ev.choices[index],result=performCheck({attribute:2,skill:c.skills.workplace||0,difficulty:9-choice[2],pressure:Math.floor((c.stress||0)/25)});applyCheckConsequence(result,"shift_"+ev.id);
  const row=c.shiftEvents.find(x=>x.id===ev.id);if(row)row.status=result.outcome;
- const detail=choice[1]+" Outcome: "+result.outcome+".";c.journal.push({time:c.time,text:ev.title+" — "+detail});c.incidentRecords=c.incidentRecords||[];c.incidentRecords.push({id:"shift_"+ev.id+"_"+c.shiftNumber,date:c.date,time:c.time,title:ev.title,area:ev.area,playerChoice:choice[0],choiceConsequence:choice[1],outcome:result.outcome,witnesses:[],status:"recorded"});
+ advanceStoryline(ev,result.outcome,choice[0]);const detail=choice[1]+" Outcome: "+result.outcome+".";c.journal.push({time:c.time,text:ev.title+" — "+detail});c.incidentRecords=c.incidentRecords||[];c.incidentRecords.push({id:"shift_"+ev.id+"_"+c.shiftNumber,date:c.date,time:c.time,title:ev.title,area:ev.area,playerChoice:choice[0],choiceConsequence:choice[1],outcome:result.outcome,witnesses:[],status:"recorded"});
  c.flags=c.flags||[];if(result.outcome==="failure"||result.outcome==="critical failure")c.flags.push("shift_event_poorly_handled_"+ev.id);else c.flags.push("shift_event_handled_"+ev.id);
  c.stress=clamp(c.stress+(choice[2]<0?4:1));c.activeShiftEvent=null;save(true);
  main.innerHTML=card(ev.title+" · Response",`<div class="eyebrow">${esc(c.time)} · ${esc(result.outcome)}</div><p>${esc(detail)}</p><p class="muted">Your response has been recorded. Its consequences may not be immediate.</p><button class="btn primary" id="eventContinue">Back to the shift</button>`);document.getElementById("eventContinue").onclick=renderCampaign;
@@ -1146,39 +1222,44 @@ function showNpcProfile(name){
 }
 const DIALOGUE_TOPICS={
  work:[
-  ["The handover has been a bit thin today.","I've had three different people ask me about the same thing. Nobody seems to know who's dealing with it.","There's a job that's been sitting on the list for days. I might chase it again."],
-  ["The rota's been changed twice this week. It's getting difficult to plan anything.","I don't mind being busy. I mind finding out at the last minute.","Someone's swapped a shift and apparently nobody told the people who needed to know."],
-  ["It's been quiet for ten minutes. I'm not convinced it'll stay that way.","The customers have been a bit more demanding lately.","I could do with a shift where the radio doesn't go off every five minutes."]
- ],
- personal:[
-  ["I've been trying to make more time for myself outside work.","I had plans at the weekend, but they didn't quite happen.","I've got a few things going on at home. Nothing I particularly want to get into right now."],
-  ["I've been looking at getting away for a few days. Just need to work out when.","I started something new recently. It's nice having something that's got nothing to do with this place.","I keep saying I'll sort my spare room out. Still haven't."],
-  ["Someone I know has been having a difficult time. It's been on my mind.","I've been spending a bit more time with people outside work.","I don't get much time to myself lately, if I'm honest."]
- ],
- people:[
-  ["Have you noticed how some people always seem to know what's going on before everyone else?","I get on with most people here, but I wouldn't tell everyone everything.","There's a bit of tension between a couple of people. I'm staying out of it."],
-  ["I heard something about the rota, but I don't know if it's true.","People have been talking about management again.","I think someone here could do with a bit of support, whether they'd admit it or not."],
-  ["It's funny how different people are when the managers aren't around.","I wouldn't repeat this, but something's been bothering me about how that was handled.","I try not to get dragged into gossip. Doesn't always work."]
- ],
- unusual:[
-  ["Did you hear that noise earlier? Probably nothing. Still, it was odd.","I had a strange moment in the corridor. Thought I recognised someone who wasn't there.","The clocks in this place never seem to agree. Have you noticed?"],
-  ["I had the weirdest feeling of déjà vu earlier. Anyway, probably just tired.","Someone left a note in a place it couldn't really have got to by accident.","I don't like that bit of the building when it's quiet. Can't explain why."],
-  ["I thought I heard my name over the radio, but nobody was calling me.","There was something odd about the pool earlier. Could've been the reflections.","Maybe it's just a long week, but things have felt slightly off."]
- ]
+  "The handover's been a bit thin today. I've had to chase three things already.","There's a job that's been sitting on the list for days. I might chase it again.","I don't mind being busy. I mind finding out at the last minute.","Someone's changed the rota twice this week. Nobody seems to know which version is right.","The radio's been going constantly. You'd think we were running an airport.","I've been trying to get a straight answer about a maintenance request.","A customer asked me something earlier and I couldn't find anyone who knew the answer.","It's been quiet for ten minutes. I'm not convinced it'll stay that way.","I think we're getting away with being short-staffed today. Just about."],
+  personal:[
+  "I've been trying to make more time for myself outside work.","I had plans at the weekend, but they didn't quite happen.","I've got a few things going on at home. Nothing I particularly want to get into.","I've been looking at getting away for a few days. Just need to work out when.","I started something new recently. It's nice having something that's got nothing to do with this place.","Someone I know has been having a difficult time. It's been on my mind.","I keep saying I'll sort the spare room out. Still haven't.","I've been sleeping badly. I think I'm taking work home in my head.","I had a really good day off for once. Didn't look at my phone all day."],
+  people:[
+  "Have you noticed how some people always seem to know what's going on before everyone else?","I get on with most people here, but I wouldn't tell everyone everything.","There's a bit of tension between a couple of people. I'm staying out of it.","I heard something about the rota, but I don't know if it's true.","People have been talking about management again.","I think someone here could do with a bit of support, whether they'd admit it or not.","It's funny how different people are when the managers aren't around.","I wouldn't repeat this, but something's been bothering me about how that was handled.","I try not to get dragged into gossip. Doesn't always work."],
+  unusual:[
+  "Did you hear that noise earlier? Probably nothing. Still, it was odd.","I had a strange moment in the corridor. Thought I recognised someone who wasn't there.","The clocks in this place never seem to agree. Have you noticed?","I had the weirdest feeling of déjà vu earlier. Probably just tired.","Someone left a note in a place it couldn't really have got to by accident.","I thought I heard my name over the radio, but nobody was calling me.","There was something odd about the pool earlier. Could've been the reflections.","Maybe it's just a long week, but things have felt slightly off.","I don't like that bit of the building when it's quiet. Can't explain why."]
 };
+const CHARACTER_DIALOGUE={
+ Alan:{work:["I've been looking at how the duties are divided. Some people aren't being held accountable.","If I were making the decisions, I'd organise this place very differently."],people:["You need to know who you can rely on. That's half the battle here.","I wouldn't underestimate how much influence certain people have."]},
+ Rachael:{work:["Let's get the immediate jobs sorted first. We can argue about the rota afterwards.","If something's not right, I'd rather know now than at handover."],personal:["I've been thinking about what a good work-life balance actually looks like.","I had a proper day off. No calls, no work messages. It was lovely."]},
+ Charles:{personal:["I've been looking at houses again. The prices are absolutely ridiculous.","I went out at the weekend and spent far too much. Worth it, though."],work:["I swear the printer knows when I'm in a rush. It jams every time."]},
+ Seb:{personal:["I was meant to meet someone last night. Long story. BOMBOCLAT!","I'm absolutely fine. Just got a bit of a throat thing. Again."],people:["I'm not saying anything, but I know something you don't."]},
+ Tracey:{work:["At my old centre we'd never have let this happen. Never.","It's all well and good having procedures, but nobody actually follows them."],people:["I heard the other centre's getting a refurbishment. Typical, isn't it?"]},
+ Cher:{work:["The rule is there for a reason. If people followed it, we wouldn't have this conversation.","I have already explained the procedure. Twice."],people:["I don't care who somebody is. The same rules apply."]},
+ Doreen:{personal:["I keep thinking I should hand my notice in. Then I have a better day and change my mind.","My sister says I need to do something for myself for a change."],work:["I don't know how much longer I can keep doing this, honestly."]},
+ Lynda:{personal:["I've brought some biscuits in. There's enough for everyone if people actually come and get them.","I was up half the night worrying about something silly."],work:["I don't think anyone realises how much gets done behind the scenes."]},
+ Jessica:{personal:["I went somewhere new at the weekend. I nearly didn't go, but I'm glad I did.","I've been trying to get out of my comfort zone a little."],people:["I don't always know what to say when everyone's talking at once."]},
+ Henna:{personal:["I've been looking at other jobs. I haven't decided anything.","I don't really know where I want to be in a year's time."]},
+ Mark:{work:["If everything's done, I don't see why we can't finish on time.","I was told someone else was covering that. Apparently not."]},
+ Tina:{work:["I did put it on the list. Whether anyone read it is another matter.","I haven't got time to do everybody else's jobs as well."]}
+};
+
 function dialogueLineFor(name,topic){
  const c=state.campaign,history=c.conversationHistory=c.conversationHistory||{};
  const seen=history[name]=history[name]||{};
- const variants=DIALOGUE_TOPICS[topic]||DIALOGUE_TOPICS.work;
- const topicIndex=Object.keys(DIALOGUE_TOPICS).indexOf(topic);
- const prior=Number(seen[topic]||0),pick=prior%variants.length;
+ const base=DIALOGUE_TOPICS[topic]||DIALOGUE_TOPICS.work;
+ const specific=CHARACTER_DIALOGUE[name]?.[topic]||[];
+ const variants=specific.length?base.concat(specific):base;
+ const prior=Number(seen[topic]||0),pick=(prior*3+STAFF_NAMES.indexOf(name)+Math.floor(Math.random()*variants.length))%variants.length;
  seen[topic]=prior+1;
- let line=variants[pick][(STAFF_NAMES.indexOf(name)+prior)%3];
+ let line=variants[pick];
  const quirks={
   Alan:"Alan gives a small, knowing smile, as though he's already worked out how this will benefit him.",
   Rachael:"Rachael listens properly, although her attention keeps returning to the demands of the shift.",
   Charles:"Charles talks quickly, then remembers he hasn't actually asked how you're getting on.",
   Doreen:"Doreen lowers her voice slightly, then seems to reconsider how much she wants to say.",
+  Zane:"Zane grins, clearly enjoying the possibility of winding somebody up.",
   Seb:"Seb starts confidently, loses his train of thought and ends with an emphatic 'BOMBOCLAT!'",
   Tracey:"Tracey manages to bring the conversation back to how much better things are at another centre.",
   Cher:"Cher delivers her opinion as though the matter has already been decided.",
@@ -1189,6 +1270,8 @@ function dialogueLineFor(name,topic){
   Alfie:"Alfie folds his arms. He clearly hasn't changed his mind.",
   Samantha:"Samantha is warm and encouraging, even though she keeps glancing at the time."
  };
+ const memory=(ns=>ns?.memories?.slice(-1)[0]?.text)(ensureNpcState(name));
+ if(memory&&Math.random()<.22)line+=" They briefly refer back to something from an earlier conversation.";
  return line+" "+(quirks[name]||name+" considers whether to say more, then leaves the thought hanging.");
 }
 function talkTo(name){
